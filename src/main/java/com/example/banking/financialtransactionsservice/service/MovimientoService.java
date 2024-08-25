@@ -1,5 +1,6 @@
 package com.example.banking.financialtransactionsservice.service;
 
+import com.example.banking.financialtransactionsservice.model.Cuenta;
 import com.example.banking.financialtransactionsservice.model.Movimiento;
 import com.example.banking.financialtransactionsservice.repository.MovimientoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,4 +29,9 @@ public class MovimientoService {
     public void deleteById(Long id) {
         movimientoRepository.deleteById(id);
     }
+
+//    // Método para obtener movimientos de una cuenta ordenados por fecha descendente
+//    public List<Movimiento> findByCuentaOrderByFechaDesc(Cuenta cuenta) {
+//        return movimientoRepository.findByCuentaOrderByFechaDesc(cuenta);
+//    }
 }

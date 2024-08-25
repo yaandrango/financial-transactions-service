@@ -4,6 +4,7 @@ import com.example.banking.financialtransactionsservice.exception.ResourceNotFou
 import com.example.banking.financialtransactionsservice.model.Cuenta;
 import com.example.banking.financialtransactionsservice.model.Movimiento;
 import com.example.banking.financialtransactionsservice.repository.CuentaRepository;
+import com.example.banking.financialtransactionsservice.repository.MovimientoRepository;
 import com.example.banking.financialtransactionsservice.service.MovimientoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,9 @@ public class MovimientoController {
     @Autowired
     private CuentaRepository cuentaRepository;
 
+    @Autowired
+    private MovimientoRepository movimientoRepository;
+
     @GetMapping("/listar")
     public List<Movimiento> getAllMovimientos() {
         return movimientoService.findAll();
@@ -35,13 +39,20 @@ public class MovimientoController {
         Cuenta cuenta = cuentaRepository.findById(movimientoRequest.getCuenta().getNumeroCuenta())
                 .orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));
 
+        // Obtener el saldo disponible actual desde el último movimiento registrado o el saldo inicial si no hay movimientos
+        BigDecimal saldoDisponible = obtenerSaldoDisponible(cuenta.getNumeroCuenta());
+
+        // Calcular el nuevo saldo disponible después del movimiento
+        BigDecimal nuevoSaldo = saldoDisponible.add(movimientoRequest.getValor());
+
         Movimiento movimiento = new Movimiento();
         movimiento.setFecha(LocalDateTime.now());
         movimiento.setTipoMovimiento(movimientoRequest.getTipoMovimiento());
         movimiento.setValor(movimientoRequest.getValor());
-        movimiento.setSaldo(movimientoRequest.getSaldo());
+        movimiento.setSaldo(nuevoSaldo);
         movimiento.setCuenta(cuenta);
         Movimiento nuevoMovimiento = movimientoService.save(movimiento);
+
         return new ResponseEntity<>(nuevoMovimiento, HttpStatus.CREATED);
     }
 
@@ -50,10 +61,20 @@ public class MovimientoController {
         Movimiento movimiento = movimientoService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Movimiento no encontrado con id: " + id));
 
+        // Obtener la cuenta asociada al movimiento
+        Cuenta cuenta = movimiento.getCuenta();
+
+        // Obtener el saldo disponible actual desde el último movimiento registrado antes de la actualización
+        BigDecimal saldoDisponibleAntesDeActualizacion = obtenerSaldoDisponible(cuenta.getNumeroCuenta()).subtract(movimiento.getValor());
+
+        // Recalcular el saldo basado en el nuevo valor del movimiento
+        BigDecimal nuevoSaldo = saldoDisponibleAntesDeActualizacion.add(movimientoDetails.getValor());
         movimiento.setTipoMovimiento(movimientoDetails.getTipoMovimiento());
         movimiento.setValor(movimientoDetails.getValor());
-        movimiento.setSaldo(movimientoDetails.getSaldo());
+        movimiento.setSaldo(nuevoSaldo); // Guardar el nuevo saldo en el movimiento
+        movimiento.setFecha(LocalDateTime.now());
         Movimiento updatedMovimiento = movimientoService.save(movimiento);
+
         return ResponseEntity.ok(updatedMovimiento);
     }
 
@@ -62,38 +83,59 @@ public class MovimientoController {
         Movimiento movimiento = movimientoService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Movimiento no encontrado con id: " + id));
 
+        // Obtener la cuenta asociada al movimiento
+        Cuenta cuenta = movimiento.getCuenta();
+
+        // Obtener el saldo disponible antes de la actualización restando el valor anterior del movimiento
+        BigDecimal saldoDisponibleAntesDeActualizacion = obtenerSaldoDisponible(cuenta.getNumeroCuenta()).subtract(movimiento.getValor());
+
+
         updates.forEach((key, value) -> {
             switch (key) {
                 case "tipoMovimiento":
                     movimiento.setTipoMovimiento((String) value);
                     break;
                 case "valor":
-                    movimiento.setValor(new BigDecimal(value.toString()));
-                    break;
-                case "saldo":
-                    movimiento.setSaldo(new BigDecimal(value.toString()));
-                    break;
-                case "cuenta_id":
-                    Integer cuentaId = Integer.valueOf(value.toString());
-                    Cuenta cuenta = cuentaRepository.findById(cuentaId)
-                            .orElseThrow(() -> new RuntimeException("Cuenta no encontrada con id: " + cuentaId));
-                    movimiento.setCuenta(cuenta);
+                    BigDecimal nuevoValor = new BigDecimal(value.toString());
+                    movimiento.setValor(nuevoValor);
+
+                    // Recalcular el saldo disponible
+                    BigDecimal nuevoSaldo = saldoDisponibleAntesDeActualizacion.add(nuevoValor);
+                    movimiento.setSaldo(nuevoSaldo);
                     break;
                 default:
                     throw new RuntimeException("Campo no reconocido: " + key);
             }
         });
 
+        movimiento.setFecha(LocalDateTime.now());
+
         Movimiento movimientoActualizado = movimientoService.save(movimiento);
+
         return ResponseEntity.ok(movimientoActualizado);
     }
 
-    @DeleteMapping("/eliminar/{id}")
-    public ResponseEntity<String> deleteMovimiento(@PathVariable Long id) {
-        Movimiento movimiento = movimientoService.findById(id)
-                .orElseThrow(() -> new RuntimeException("Movimiento no encontrado con id: " + id));
+//    @DeleteMapping("/eliminar/{id}")
+//    public ResponseEntity<String> deleteMovimiento(@PathVariable Long id) {
+//        Movimiento movimiento = movimientoService.findById(id)
+//                .orElseThrow(() -> new RuntimeException("Movimiento no encontrado con id: " + id));
+//
+//        // Eliminar el movimiento
+//        movimientoService.deleteById(id);
+//
+//        return ResponseEntity.ok("Movimiento eliminada exitosamente");
+//    }
 
-        movimientoService.deleteById(id);
-        return ResponseEntity.ok("Movimiento eliminada exitosamente");
+    // Método auxiliar para obtener el saldo disponible actual de una cuenta
+    private BigDecimal obtenerSaldoDisponible(Integer numeroCuenta) {
+        Movimiento ultimoMovimiento = movimientoRepository.findFirstByCuentaNumeroCuentaOrderByFechaDesc(numeroCuenta);
+
+        if (ultimoMovimiento != null) {
+            return ultimoMovimiento.getSaldo();
+        } else {
+            return cuentaRepository.findById(numeroCuenta)
+                    .map(Cuenta::getSaldoInicial)
+                    .orElse(BigDecimal.ZERO);
+        }
     }
 }

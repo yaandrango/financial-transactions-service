@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/movimientos")
@@ -53,6 +55,37 @@ public class MovimientoController {
         movimiento.setSaldo(movimientoDetails.getSaldo());
         Movimiento updatedMovimiento = movimientoService.save(movimiento);
         return ResponseEntity.ok(updatedMovimiento);
+    }
+
+    @PatchMapping("/actualizar-parcial/{id}")
+    public ResponseEntity<Movimiento> partialUpdateMovimiento(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+        Movimiento movimiento = movimientoService.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Movimiento no encontrado con id: " + id));
+
+        updates.forEach((key, value) -> {
+            switch (key) {
+                case "tipoMovimiento":
+                    movimiento.setTipoMovimiento((String) value);
+                    break;
+                case "valor":
+                    movimiento.setValor(new BigDecimal(value.toString()));
+                    break;
+                case "saldo":
+                    movimiento.setSaldo(new BigDecimal(value.toString()));
+                    break;
+                case "cuenta_id":
+                    Integer cuentaId = Integer.valueOf(value.toString());
+                    Cuenta cuenta = cuentaRepository.findById(cuentaId)
+                            .orElseThrow(() -> new RuntimeException("Cuenta no encontrada con id: " + cuentaId));
+                    movimiento.setCuenta(cuenta);
+                    break;
+                default:
+                    throw new RuntimeException("Campo no reconocido: " + key);
+            }
+        });
+
+        Movimiento movimientoActualizado = movimientoService.save(movimiento);
+        return ResponseEntity.ok(movimientoActualizado);
     }
 
     @DeleteMapping("/eliminar/{id}")

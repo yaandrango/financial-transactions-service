@@ -47,10 +47,10 @@ public class CuentaController {
         return new ResponseEntity<>(nuevaCuenta, HttpStatus.CREATED);
     }
 
-    @PutMapping("/actualizar/{id}")
-    public ResponseEntity<Cuenta> updateCuenta(@PathVariable Long id, @RequestBody Cuenta cuentaDetails) {
-        Cuenta cuenta = cuentaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada con id: " + id));
+    @PutMapping("/actualizar/{numeroCuenta}")
+    public ResponseEntity<Cuenta> updateCuenta(@PathVariable Integer numeroCuenta, @RequestBody Cuenta cuentaDetails) {
+        Cuenta cuenta = cuentaRepository.findById(numeroCuenta)
+                .orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada con id: " + numeroCuenta));
 
         cuenta.setTipoCuenta(cuentaDetails.getTipoCuenta());
         cuenta.setSaldoInicial(cuentaDetails.getSaldoInicial());
@@ -59,10 +59,10 @@ public class CuentaController {
         return ResponseEntity.ok(cuentaActualizada);
     }
 
-    @PatchMapping("/actualizar-parcial/{id}")
-    public ResponseEntity<Cuenta> partialUpdateCuenta(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
-        Cuenta cuenta = cuentaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada con id: " + id));
+    @PatchMapping("/actualizar-parcial/{numeroCuenta}")
+    public ResponseEntity<Cuenta> partialUpdateCuenta(@PathVariable Integer numeroCuenta, @RequestBody Map<String, Object> updates) {
+        Cuenta cuenta = cuentaRepository.findById(numeroCuenta)
+                .orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada con id: " + numeroCuenta));
 
         updates.forEach((key, value) -> {
             switch (key) {
@@ -96,10 +96,10 @@ public class CuentaController {
         return ResponseEntity.ok(cuentaActualizada);
     }
 
-    @DeleteMapping("/eliminar/{id}")
-    public ResponseEntity<String> deleteCuenta(@PathVariable Long id) {
-        Cuenta cuenta = cuentaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada con id: " + id));
+    @DeleteMapping("/eliminar/{numeroCuenta}")
+    public ResponseEntity<String> deleteCuenta(@PathVariable Integer numeroCuenta) {
+        Cuenta cuenta = cuentaRepository.findById(numeroCuenta)
+                .orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada con id: " + numeroCuenta));
 
         cuentaRepository.delete(cuenta);
         return ResponseEntity.ok("Cuenta eliminada exitosamente");

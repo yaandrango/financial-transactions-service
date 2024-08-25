@@ -34,7 +34,7 @@ public class CuentaController {
     }
 
     @PostMapping("/crear")
-    public ResponseEntity<String> crearCuenta(@RequestBody CuentaRequest cuentaRequest) {
+    public ResponseEntity<Cuenta> crearCuenta(@RequestBody CuentaRequest cuentaRequest) {
         Cliente cliente = clienteService.findById(cuentaRequest.getClienteId())
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
         Cuenta cuenta = new Cuenta();
@@ -43,19 +43,19 @@ public class CuentaController {
         cuenta.setEstado(cuentaRequest.getEstado());
         cuenta.setCliente(cliente);
         Cuenta nuevaCuenta = cuentaService.save(cuenta);
-        return new ResponseEntity<>("Cuenta creada exitosamente", HttpStatus.CREATED);
+        return new ResponseEntity<>(nuevaCuenta, HttpStatus.CREATED);
     }
 
     @PutMapping("/actualizar/{id}")
-    public ResponseEntity<String> updateCuenta(@PathVariable Long id, @RequestBody Cuenta cuentaDetails) {
+    public ResponseEntity<Cuenta> updateCuenta(@PathVariable Long id, @RequestBody Cuenta cuentaDetails) {
         Cuenta cuenta = cuentaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cuenta no encontrada con id: " + id));
 
         cuenta.setTipoCuenta(cuentaDetails.getTipoCuenta());
         cuenta.setSaldoInicial(cuentaDetails.getSaldoInicial());
         cuenta.setEstado(cuentaDetails.getEstado());
-        cuentaRepository.save(cuenta);
-        return ResponseEntity.ok("Cuenta actualizada exitosamente");
+        Cuenta cuentaActualizada = cuentaRepository.save(cuenta);
+        return ResponseEntity.ok(cuentaActualizada);
     }
 
     @DeleteMapping("/eliminar/{id}")

@@ -5,6 +5,8 @@ import com.example.banking.financialtransactionsservice.repository.ClienteReposi
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class ClienteService {
 
@@ -13,5 +15,9 @@ public class ClienteService {
 
     public Cliente save(Cliente cliente) {
         return clienteRepository.save(cliente);
+    }
+
+    public Optional<Cliente> findById(Long id) {
+        return clienteRepository.findById(id);
     }
 }

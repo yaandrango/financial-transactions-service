@@ -17,8 +17,8 @@ public class CuentaService {
         return cuentaRepository.save(cuenta);
     }
 
-    public Optional<Cuenta> findById(Long id) {
-        return cuentaRepository.findById(id);
+    public Optional<Cuenta> findById(Integer numeroCuenta) {
+        return cuentaRepository.findById(numeroCuenta);
     }
 
     public void delete(Cuenta cuenta) {

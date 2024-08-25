@@ -4,12 +4,21 @@ import java.math.BigDecimal;
 
 public class CuentaRequest {
 
+    private Integer numeroCuenta;
     private String tipoCuenta;
     private BigDecimal saldoInicial;
     private Boolean estado;
     private Long clienteId;
 
     // Getters and setters
+
+
+    public Integer getNumeroCuenta() {
+        return numeroCuenta;
+    }
+
+    public void setNumeroCuenta(Integer numeroCuenta) {this.numeroCuenta = numeroCuenta;}
+
     public String getTipoCuenta() {
         return tipoCuenta;
     }

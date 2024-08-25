@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 @Table(name = "cuenta", schema = "public")
 public class Cuenta implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer numeroCuenta;
 
     private String tipoCuenta;

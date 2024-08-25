@@ -39,6 +39,7 @@ public class CuentaController {
         Cliente cliente = clienteService.findById(cuentaRequest.getClienteId())
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
         Cuenta cuenta = new Cuenta();
+        cuenta.setNumeroCuenta(cuentaRequest.getNumeroCuenta());
         cuenta.setTipoCuenta(cuentaRequest.getTipoCuenta());
         cuenta.setSaldoInicial(cuentaRequest.getSaldoInicial());
         cuenta.setEstado(cuentaRequest.getEstado());
@@ -66,12 +67,6 @@ public class CuentaController {
 
         updates.forEach((key, value) -> {
             switch (key) {
-                case "numeroCuenta":
-                    if (value != null) {
-                        Integer nuevoNumeroCuenta = Integer.valueOf(value.toString());
-                        cuenta.setNumeroCuenta(nuevoNumeroCuenta);
-                    }
-                    break;
                 case "tipoCuenta":
                     cuenta.setTipoCuenta((String) value);
                     break;
@@ -95,6 +90,7 @@ public class CuentaController {
         Cuenta cuentaActualizada = cuentaRepository.save(cuenta);
         return ResponseEntity.ok(cuentaActualizada);
     }
+
 
     @DeleteMapping("/eliminar/{numeroCuenta}")
     public ResponseEntity<String> deleteCuenta(@PathVariable Integer numeroCuenta) {

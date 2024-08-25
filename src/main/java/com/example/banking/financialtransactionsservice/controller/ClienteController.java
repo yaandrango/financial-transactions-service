@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/clientes")
@@ -52,6 +53,34 @@ public class ClienteController {
         cliente.setContrasena(clienteDetails.getContrasena());
         cliente.setEstado(clienteDetails.getEstado());
         return clienteRepository.save(cliente);
+    }
+
+    @PatchMapping("/actualizar-parcial/{id}")
+    public ResponseEntity<Cliente> partialUpdateCliente(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+        Cliente cliente = clienteRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con id: " + id));
+
+        updates.forEach((key, value) -> {
+            switch (key) {
+                case "contrasena":
+                    cliente.setContrasena((String) value);
+                    break;
+                case "estado":
+                    cliente.setEstado((Boolean) value);
+                    break;
+                case "personaId":
+                    Long personaId = Long.valueOf(value.toString());
+                    Persona persona = personaService.findById(personaId)
+                            .orElseThrow(() -> new RuntimeException("Persona no encontrada con id: " + personaId));
+                    cliente.setPersona(persona);
+                    break;
+                default:
+                    throw new RuntimeException("Campo no reconocido: " + key);
+            }
+        });
+
+        Cliente updatedCliente = clienteRepository.save(cliente);
+        return ResponseEntity.ok(updatedCliente);
     }
 
     @DeleteMapping("/eliminar/{id}")

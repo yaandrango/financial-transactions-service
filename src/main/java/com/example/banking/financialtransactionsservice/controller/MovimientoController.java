@@ -35,12 +35,18 @@ public class MovimientoController {
     }
 
     @PostMapping("/crear")
-    public ResponseEntity<Movimiento> crearMovimiento(@RequestBody Movimiento movimientoRequest) {
+    public ResponseEntity<?> crearMovimiento(@RequestBody Movimiento movimientoRequest) {
         Cuenta cuenta = cuentaRepository.findById(movimientoRequest.getCuenta().getNumeroCuenta())
                 .orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));
 
         // Obtener el saldo disponible actual desde el último movimiento registrado o el saldo inicial si no hay movimientos
         BigDecimal saldoDisponible = obtenerSaldoDisponible(cuenta.getNumeroCuenta());
+
+        // Verificar si hay saldo suficiente
+        if (saldoDisponible.add(movimientoRequest.getValor()).compareTo(BigDecimal.ZERO) < 0) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Saldo no disponible");
+        }
 
         // Calcular el nuevo saldo disponible después del movimiento
         BigDecimal nuevoSaldo = saldoDisponible.add(movimientoRequest.getValor());
@@ -57,7 +63,7 @@ public class MovimientoController {
     }
 
     @PutMapping("/actualizar/{id}")
-    public ResponseEntity<Movimiento> updateMovimiento(@PathVariable Long id, @RequestBody Movimiento movimientoDetails) {
+    public ResponseEntity<?> updateMovimiento(@PathVariable Long id, @RequestBody Movimiento movimientoDetails) {
         Movimiento movimiento = movimientoService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Movimiento no encontrado con id: " + id));
 
@@ -66,6 +72,12 @@ public class MovimientoController {
 
         // Obtener el saldo disponible actual desde el último movimiento registrado antes de la actualización
         BigDecimal saldoDisponibleAntesDeActualizacion = obtenerSaldoDisponible(cuenta.getNumeroCuenta()).subtract(movimiento.getValor());
+
+        // Verificar si hay saldo suficiente
+        if (saldoDisponibleAntesDeActualizacion.add(movimientoDetails.getValor()).compareTo(BigDecimal.ZERO) < 0) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Saldo no disponible");
+        }
 
         // Recalcular el saldo basado en el nuevo valor del movimiento
         BigDecimal nuevoSaldo = saldoDisponibleAntesDeActualizacion.add(movimientoDetails.getValor());
@@ -79,7 +91,7 @@ public class MovimientoController {
     }
 
     @PatchMapping("/actualizar-parcial/{id}")
-    public ResponseEntity<Movimiento> partialUpdateMovimiento(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+    public ResponseEntity<?> partialUpdateMovimiento(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
         Movimiento movimiento = movimientoService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Movimiento no encontrado con id: " + id));
 
@@ -97,6 +109,12 @@ public class MovimientoController {
                     break;
                 case "valor":
                     BigDecimal nuevoValor = new BigDecimal(value.toString());
+
+                    // Verificar si hay saldo suficiente
+                    if (saldoDisponibleAntesDeActualizacion.add(nuevoValor).compareTo(BigDecimal.ZERO) < 0) {
+                        throw new RuntimeException("Saldo no disponible");
+                    }
+
                     movimiento.setValor(nuevoValor);
 
                     // Recalcular el saldo disponible

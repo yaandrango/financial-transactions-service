@@ -68,7 +68,7 @@ public class CuentaController {
             switch (key) {
                 case "numeroCuenta":
                     if (value != null) {
-                        Long nuevoNumeroCuenta = Long.valueOf(value.toString());
+                        Integer nuevoNumeroCuenta = Integer.valueOf(value.toString());
                         cuenta.setNumeroCuenta(nuevoNumeroCuenta);
                     }
                     break;

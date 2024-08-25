@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 public class Cuenta implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long numeroCuenta;
+    private Integer numeroCuenta;
 
     private String tipoCuenta;
     private BigDecimal saldoInicial;
@@ -21,11 +21,11 @@ public class Cuenta implements Serializable {
     private Cliente cliente;
 
     // Getters and setters
-    public Long getNumeroCuenta() {
+    public Integer getNumeroCuenta() {
         return numeroCuenta;
     }
 
-    public void setNumeroCuenta(Long numeroCuenta) {
+    public void setNumeroCuenta(Integer numeroCuenta) {
         this.numeroCuenta = numeroCuenta;
     }
 

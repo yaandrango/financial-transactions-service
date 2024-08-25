@@ -2,8 +2,11 @@ package com.example.banking.financialtransactionsservice.model;
 
 import jakarta.persistence.*;
 
+import java.io.Serializable;
+
 @Entity
-public class Cliente extends Persona {
+@Table(name = "cliente", schema = "public")
+public class Cliente implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long clienteid;

@@ -2,10 +2,12 @@ package com.example.banking.financialtransactionsservice.model;
 
 import jakarta.persistence.*;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Entity
-public class Cuenta {
+@Table(name = "cuenta", schema = "public")
+public class Cuenta implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long numeroCuenta;

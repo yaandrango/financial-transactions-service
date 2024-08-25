@@ -2,11 +2,13 @@ package com.example.banking.financialtransactionsservice.model;
 
 import jakarta.persistence.*;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.security.Timestamp;
 
 @Entity
-public class Movimiento {
+@Table(name = "movimiento", schema = "public")
+public class Movimiento implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

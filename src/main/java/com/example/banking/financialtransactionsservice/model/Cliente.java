@@ -15,4 +15,38 @@ public class Cliente extends Persona {
     @JoinColumn(name = "persona_id")
     private Persona persona;
 
+    public Cliente() {}
+
+    // Getters y Setters
+    public Long getClienteid() {
+        return clienteid;
+    }
+
+    public void setClienteid(Long clienteid) {
+        this.clienteid = clienteid;
+    }
+
+    public String getContrasena() {
+        return contrasena;
+    }
+
+    public void setContrasena(String contrasena) {
+        this.contrasena = contrasena;
+    }
+
+    public Boolean getEstado() {
+        return estado;
+    }
+
+    public void setEstado(Boolean estado) {
+        this.estado = estado;
+    }
+
+    public Persona getPersona() {
+        return persona;
+    }
+
+    public void setPersona(Persona persona) {
+        this.persona = persona;
+    }
 }

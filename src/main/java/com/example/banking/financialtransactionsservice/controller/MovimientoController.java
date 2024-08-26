@@ -1,5 +1,6 @@
 package com.example.banking.financialtransactionsservice.controller;
 
+import com.example.banking.financialtransactionsservice.exception.ErrorResponse;
 import com.example.banking.financialtransactionsservice.exception.ResourceNotFoundException;
 import com.example.banking.financialtransactionsservice.model.Cuenta;
 import com.example.banking.financialtransactionsservice.model.Movimiento;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,7 +47,7 @@ public class MovimientoController {
         // Verificar si hay saldo suficiente
         if (saldoDisponible.add(movimientoRequest.getValor()).compareTo(BigDecimal.ZERO) < 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Saldo no disponible");
+                    .body(new ErrorResponse("Saldo no disponible", saldoDisponible));
         }
 
         // Calcular el nuevo saldo disponible después del movimiento
@@ -76,7 +78,7 @@ public class MovimientoController {
         // Verificar si hay saldo suficiente
         if (saldoDisponibleAntesDeActualizacion.add(movimientoDetails.getValor()).compareTo(BigDecimal.ZERO) < 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Saldo no disponible");
+                    .body(new ErrorResponse("Saldo no disponible", saldoDisponibleAntesDeActualizacion));
         }
 
         // Recalcular el saldo basado en el nuevo valor del movimiento
@@ -112,7 +114,10 @@ public class MovimientoController {
 
                     // Verificar si hay saldo suficiente
                     if (saldoDisponibleAntesDeActualizacion.add(nuevoValor).compareTo(BigDecimal.ZERO) < 0) {
-                        throw new RuntimeException("Saldo no disponible");
+                        throw new ResponseStatusException(
+                                HttpStatus.BAD_REQUEST,
+                                String.format("Saldo no disponible. Saldo disponible actual: %s", saldoDisponibleAntesDeActualizacion)
+                        );
                     }
 
                     movimiento.setValor(nuevoValor);
